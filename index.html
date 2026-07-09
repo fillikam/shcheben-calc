@@ -299,6 +299,22 @@ var tg = window.Telegram && window.Telegram.WebApp ? window.Telegram.WebApp : nu
 var inTelegram = !!(tg && tg.platform && tg.platform !== 'unknown');
 var orderText = '';
 
+// --- Счётчик конверсии ---
+var STATS_URL = 'https://shcheben-stats.fillikam.workers.dev/hit';
+function track(e) {
+  // Считаем одно устройство один раз в сутки на каждое событие
+  try {
+    var day = new Date().toISOString().slice(0, 10);
+    var k = 'trk_' + e + '_' + day;
+    if (localStorage.getItem(k)) return;
+    localStorage.setItem(k, '1');
+  } catch (_) {}
+  var u = STATS_URL + '?e=' + e + '&t=' + Date.now();
+  try { if (navigator.sendBeacon) { navigator.sendBeacon(u); return; } } catch (_) {}
+  try { new Image().src = u; } catch (_) {}
+}
+track('open');
+
 // Инициализация Telegram Mini App
 if (tg) {
   tg.ready();
@@ -314,6 +330,7 @@ if (inTelegram) {
   tg.MainButton.setParams({ text: 'Заказать', color: '#2563EB', text_color: '#ffffff' });
   tg.MainButton.show();
   tg.MainButton.onClick(function () {
+    track('lead');
     // Пытаемся отправить расчёт боту как web_app_data (сработает, если
     // мини-апа открыта кнопкой web_app в клавиатуре бота и бот это принимает).
     // sendData часто не срабатывает без ошибки, поэтому не полагаемся только на него.
@@ -390,6 +407,10 @@ function calc() {
     tg.MainButton.setText('Заказать · ' + fmt(mid));
   }
 }
+
+// Запасная кнопка в браузере тоже считает заявку
+var ctaBtn = document.getElementById('cta-btn');
+if (ctaBtn) ctaBtn.addEventListener('click', function () { track('lead'); });
 
 calc();
 </script>
