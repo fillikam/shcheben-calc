@@ -280,7 +280,7 @@
 
     <!-- Запасная кнопка: видна только если открыть файл в обычном браузере -->
     <div class="cta" id="cta-fallback">
-      <a class="cta-btn" id="cta-btn" href="https://t.me/prakktikum0907202611_bot" target="_blank" rel="noopener">
+      <a class="cta-btn" id="cta-btn" href="https://t.me/prakktikum0907202611_bot" rel="noopener">
         Заказать щебень в Telegram →
       </a>
       <div class="cta-note">Откроется бот. Нажмите «Start» и напишите заявку.</div>
@@ -314,13 +314,15 @@ if (inTelegram) {
   tg.MainButton.setParams({ text: 'Заказать', color: '#2563EB', text_color: '#ffffff' });
   tg.MainButton.show();
   tg.MainButton.onClick(function () {
+    // Пытаемся отправить расчёт боту как web_app_data (сработает, если
+    // мини-апа открыта кнопкой web_app в клавиатуре бота и бот это принимает).
+    // sendData часто не срабатывает без ошибки, поэтому не полагаемся только на него.
+    try { tg.sendData(orderText); } catch (e) {}
+    // В любом случае надёжно открываем чат с ботом.
     try {
-      // Отправляет расчёт боту как web_app_data и закрывает мини-апу.
-      // Работает, если мини-апа открыта кнопкой web_app в клавиатуре бота.
-      tg.sendData(orderText);
-    } catch (e) {
-      // Иначе просто открываем чат с ботом
       tg.openTelegramLink('https://t.me/prakktikum0907202611_bot');
+    } catch (e) {
+      window.location.href = 'https://t.me/prakktikum0907202611_bot';
     }
   });
 }
